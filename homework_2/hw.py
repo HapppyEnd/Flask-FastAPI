@@ -6,8 +6,9 @@
 будет удалён cookie-файл с данными пользователя и произведено перенаправление
 на страницу ввода имени и электронной почты."""
 import secrets
+from flask import (Flask, flash, redirect, render_template, request, session,
+                   url_for)
 
-from flask import Flask, redirect, render_template, request, session, url_for
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex()
@@ -27,8 +28,13 @@ def get_form():
 @app.post('/form/')
 def post_form():
     name = request.form.get('name')
-    session['name'] = request.form.get('name')
-    return redirect(url_for('hello', name=name))
+    email = request.form.get('email')
+    if name and email:
+        session['name'] = request.form.get('name')
+        session['email'] = request.form.get('email')
+        return redirect(url_for('hello', name=name))
+    flash('Введите имя и почту!', 'danger')
+    return redirect(url_for('get_form'))
 
 
 @app.route('/hello/<name>')
@@ -40,6 +46,8 @@ def hello(name):
 def logout():
     if session:
         session.pop('name')
+        session.pop('email')
+
     return redirect(url_for('get_form'))
 
 
